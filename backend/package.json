@@ -1,0 +1,19 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "api-up": "node controle & node logging & node gateway"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "express": "^4.21.1",
+    "express-http-proxy": "^2.1.1",
+    "morgan": "^1.10.0",
+    "sqlite3": "^5.1.7"
+  }
+}
