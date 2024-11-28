@@ -41,6 +41,7 @@ app.get('/controle', (req, res, next) => {
   db.get('SELECT valor_limite FROM controle WHERE codigo = ?', [1], (err, result) => {
     if (err) {
       res.status(500).send('Ocorreu um erro ao obter a configuração.');
+      console.log('ERRO: ' + err.message);
       return;
     }
     if (!result) {
@@ -58,6 +59,7 @@ app.patch('/controle', (req, res, next) => {
     function (err) {
       if (err) {
         res.status(500).send('Ocorreu um erro ao atualizar a configuração.');
+        console.log('ERRO: ' + err.message);
         return;
       }
       if (this.changes == 0) {
