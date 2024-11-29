@@ -2,19 +2,17 @@
 #include <HTTPClient.h>
 #include <Arduino.h>
 
-const int sensorPin = 15;
-const int ledPin = 4;
+const int sensorPin = 34;
+const int ledPin = 16;
 
 const char* ssid = "Matheus";
 const char* password = "theus123";
 
-//Your Domain name with URL path or IP address with path
 String serverName = "https://aphid-renewed-centrally.ngrok-free.app";
 
 unsigned long lastTime = 0;
 
-// Set timer to 5 seconds (5000)
-unsigned long timerDelay = 5000;
+unsigned long timerDelay = 2000;
 
 int valor = 0;
 
@@ -37,18 +35,18 @@ void setup() {
 }
 
 void loop() {
-  //Send an HTTP POST request every 5 seconds
+  // Requisicao a cada 2 segundos
   if ((millis() - lastTime) > timerDelay) {
-    //Check WiFi connection status
     if(WiFi.status() == WL_CONNECTED){
       HTTPClient http;
+      WiFiClient client;
 
-      String serverPath = serverName + "/controle";
+      String serverPathGet = serverName + "/controle";
+      String serverPathPost = serverName + "/logging";
+
+      http.begin(serverPathGet.c_str());
       
-      // Your Domain name with URL path or IP address with path
-      http.begin(serverPath.c_str());
-      
-      // Send HTTP GET request
+      // GET REQUEST
       int httpResponseCode = http.GET();
       
       if (httpResponseCode > 0) {
@@ -62,7 +60,25 @@ void loop() {
         Serial.print("Error code: ");
         Serial.println(httpResponseCode);
       }
-      // Free resources
+      // Liberar recursos / Desconectar
+      http.end();
+
+      DynamicJsonDocument doc(2048);
+      doc["valor_lido"] = valLuz;
+
+      String json;
+      serializeJson(doc, json);
+
+      http.begin(client, serverPathPost.c_str());
+      http.POST(json);
+
+      Serial.print(http.getString());
+
+      //http.addHeader("Content-Type", "text/plain");
+      //int httpResponseCode = http.POST("Hello, World!");
+      //Serial.print("HTTP Response code: ");
+      //Serial.println(httpResponseCode);
+
       http.end();
     }
     else {
