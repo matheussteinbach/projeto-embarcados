@@ -1,9 +1,11 @@
 const httpProxy = require('express-http-proxy');
 const express = require('express');
 const logger = require('morgan');
+const cors = require('cors');
 const app = express();
 
 app.use(logger('dev'));
+app.use(cors());
 
 const DOMINIO_BASE = 'http://localhost';
 
