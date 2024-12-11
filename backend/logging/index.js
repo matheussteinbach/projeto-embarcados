@@ -29,7 +29,7 @@ db.run(
 );
 
 const app = express();
-app.use(bodyParser.json());
+app.use(bodyParser.text());
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.get('/logging', (req, res, next) => {
@@ -46,7 +46,7 @@ app.get('/logging', (req, res, next) => {
 app.post('/logging', (req, res, next) => {
   db.run(
     "INSERT INTO logging VALUES ((SELECT COALESCE(MAX(codigo), 0) + 1 FROM logging), ?, DATETIME('now'))",
-    [req.body.valor_lido],
+    [req.body],
     function (err) {
       if (err) {
         res.status(500).send('Ocorreu um erro ao inserir o log.');
