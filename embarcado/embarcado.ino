@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 #include <Arduino.h>
 
 const int sensorPin = 34;
@@ -11,21 +12,21 @@ const char* password = "theus123";
 String serverName = "https://aphid-renewed-centrally.ngrok-free.app";
 
 unsigned long lastTime = 0;
-
-unsigned long timerDelay = 2000;
+unsigned long timerDelay = 1000;
 
 int valor = 0;
+int valLuz = 0;
 
 void setup() {
   Serial.begin(115200);
-  while(!Serial); 
+  while (!Serial);
 
   pinMode(ledPin, OUTPUT);
   pinMode(sensorPin, INPUT);
 
   WiFi.begin(ssid, password);
   Serial.println("Conectando");
-  while(WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
@@ -35,66 +36,49 @@ void setup() {
 }
 
 void loop() {
-  // Requisicao a cada 2 segundos
   if ((millis() - lastTime) > timerDelay) {
-    if(WiFi.status() == WL_CONNECTED){
+    if (WiFi.status() == WL_CONNECTED) {
       HTTPClient http;
-      WiFiClient client;
+      WiFiClientSecure client;
+      client.setInsecure(); // Desabilitar validação SSL (para testes)
 
+      // GET
       String serverPathGet = serverName + "/controle";
-      String serverPathPost = serverName + "/logging";
-
-      http.begin(serverPathGet.c_str());
-      
-      // GET REQUEST
+      http.begin(client, serverPathGet.c_str());
       int httpResponseCode = http.GET();
-      
       if (httpResponseCode > 0) {
-        Serial.print("HTTP Response code: ");
+        Serial.print("HTTP Response code GET: ");
         Serial.println(httpResponseCode);
         String payload = http.getString();
         valor = payload.toInt();
         Serial.println(valor);
-      }
-      else {
-        Serial.print("Error code: ");
+      } else {
+        Serial.print("Error GET: ");
         Serial.println(httpResponseCode);
       }
-      // Liberar recursos / Desconectar
       http.end();
 
-      DynamicJsonDocument doc(2048);
-      doc["valor_lido"] = valLuz;
-
-      String json;
-      serializeJson(doc, json);
-
+      // POST
+      String serverPathPost = serverName + "/logging";
       http.begin(client, serverPathPost.c_str());
-      http.POST(json);
-
-      Serial.print(http.getString());
-
-      //http.addHeader("Content-Type", "text/plain");
-      //int httpResponseCode = http.POST("Hello, World!");
-      //Serial.print("HTTP Response code: ");
-      //Serial.println(httpResponseCode);
-
+      http.addHeader("Content-Type", "text/plain");
+      String luz = String(valLuz);
+      int httpResponseCodePOST = http.POST(luz);
+      Serial.print("HTTP Response code POST: ");
+      Serial.println(httpResponseCodePOST);
       http.end();
-    }
-    else {
+    } else {
       Serial.println("WiFi Desconectado");
     }
     lastTime = millis();
   }
-  
-  
-  int valLuz = analogRead(sensorPin);
+
+  valLuz = analogRead(sensorPin);
 
   Serial.print("Luz: ");
   Serial.println(valLuz);
   Serial.print("Valor: ");
   Serial.println(valor);
-
 
   if (valLuz > valor) {
     digitalWrite(ledPin, HIGH);
